@@ -10,7 +10,7 @@
       "type": "multiple_choice",
       "text": "What is 2 + 2?",
       "options": ["3", "4", "5"],
-      "correct_answers": [1]
+      "correct_answers": [1] 
     },
     {
       "type": "multiple_choice",

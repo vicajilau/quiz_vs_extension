@@ -22,11 +22,64 @@ interface QuizFile {
 	questions: MultipleChoiceQuestion[];
 }
 
-export function activate(context: vscode.ExtensionContext) {
-	console.log('QUIZ Validator extension is now active!');
+let diagnosticCollection: vscode.DiagnosticCollection;
 
-	// Create diagnostic collection for quiz validation errors
-	const diagnosticCollection = vscode.languages.createDiagnosticCollection('quiz');
+export function activate(context: vscode.ExtensionContext) {
+	console.log('QUIZ File Support extension is now active!');
+	vscode.window.showInformationMessage('QUIZ File Support extension activated!');
+
+	// Force immediate configuration of file associations
+	const forceFileAssociations = async () => {
+		const config = vscode.workspace.getConfiguration();
+		const currentAssociations = config.get<Record<string, string>>('files.associations', {});
+		
+		if (currentAssociations['*.quiz'] !== 'quiz') {
+			console.log('Forcing QUIZ file associations...');
+			
+			try {
+				// Set globally
+				await config.update('files.associations', 
+					{ ...currentAssociations, '*.quiz': 'quiz' }, 
+					vscode.ConfigurationTarget.Global
+				);
+				
+				// Set for workspace  
+				await config.update('files.associations',
+					{ ...currentAssociations, '*.quiz': 'quiz' },
+					vscode.ConfigurationTarget.Workspace
+				);
+				
+				console.log('File associations updated successfully');
+			} catch (error) {
+				console.error('Failed to update file associations:', error);
+			}
+		}
+	};
+
+	// Execute immediately
+	forceFileAssociations();
+
+	// Force detection of all currently open .quiz files
+	const forceDetectOpenQuizFiles = () => {
+		vscode.workspace.textDocuments.forEach(document => {
+			if (document.fileName.toLowerCase().endsWith('.quiz') && document.languageId !== 'quiz') {
+				console.log(`Force-setting language for: ${document.fileName} (current: ${document.languageId})`);
+				vscode.languages.setTextDocumentLanguage(document, 'quiz').then(() => {
+					console.log(`Successfully set language for: ${document.fileName}`);
+				}, (error: any) => {
+					console.error(`Failed to set language for ${document.fileName}:`, error);
+				});
+			}
+		});
+	};
+
+	// Execute with delays to ensure VS Code is ready
+	setTimeout(forceDetectOpenQuizFiles, 100);
+	setTimeout(forceDetectOpenQuizFiles, 500);
+	setTimeout(forceDetectOpenQuizFiles, 1000);
+
+	// Create diagnostic collection
+	diagnosticCollection = vscode.languages.createDiagnosticCollection('quiz');
 	context.subscriptions.push(diagnosticCollection);
 
 	// Load JSON schema
@@ -44,6 +97,46 @@ export function activate(context: vscode.ExtensionContext) {
 	const ajv = new Ajv({ allErrors: true });
 	const validate = ajv.compile(schema);
 
+	// Force language detection for .quiz files
+	context.subscriptions.push(
+		vscode.workspace.onDidOpenTextDocument(document => {
+			if (document.fileName.endsWith('.quiz') && document.languageId !== 'quiz') {
+				vscode.languages.setTextDocumentLanguage(document, 'quiz');
+			}
+			if (isQuizFile(document)) {
+				validateQuizFile(document);
+			}
+		})
+	);
+
+	// Also check active editor on activation
+	if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName.endsWith('.quiz') && vscode.window.activeTextEditor.document.languageId !== 'quiz') {
+		vscode.languages.setTextDocumentLanguage(vscode.window.activeTextEditor.document, 'quiz');
+	}
+
+	// Validate files when opened or changed
+	if (vscode.window.activeTextEditor && isQuizFile(vscode.window.activeTextEditor.document)) {
+		validateQuizFile(vscode.window.activeTextEditor.document);
+	}
+
+	// Listener for editor changes
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTextEditor(editor => {
+			if (editor && isQuizFile(editor.document)) {
+				validateQuizFile(editor.document);
+			}
+		})
+	);
+
+	// Listener for document changes
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeTextDocument(event => {
+			if (isQuizFile(event.document)) {
+				validateQuizFile(event.document);
+			}
+		})
+	);
+
 	// Function to validate quiz file
 	function validateQuizFile(document: vscode.TextDocument) {
 		console.log('Validating document:', document.fileName, 'Language:', document.languageId);
@@ -53,6 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
+		console.log('Starting validation for:', document.fileName);
 		const diagnostics: vscode.Diagnostic[] = [];
 		
 		try {
@@ -109,21 +203,22 @@ export function activate(context: vscode.ExtensionContext) {
 			diagnostics.push(diagnostic);
 		}
 
+		console.log('Setting diagnostics:', diagnostics.length, 'errors found');
 		diagnosticCollection.set(document.uri, diagnostics);
 	}
 
-	// Register commands
-	const validateCommand = vscode.commands.registerCommand('quiz.validate', () => {
-		const editor = vscode.window.activeTextEditor;
-		if (editor) {
-			validateQuizFile(editor.document);
-			vscode.window.showInformationMessage('Quiz file validation completed');
+	// Commands
+	const validateCommand = vscode.commands.registerCommand('quiz-file-support.validateFile', () => {
+		const activeEditor = vscode.window.activeTextEditor;
+		if (activeEditor && isQuizFile(activeEditor.document)) {
+			validateQuizFile(activeEditor.document);
+			vscode.window.showInformationMessage('Quiz file validation completed!');
 		} else {
-			vscode.window.showWarningMessage('No active editor found');
+			vscode.window.showWarningMessage('Please open a .quiz file to validate.');
 		}
 	});
 
-	const createSampleCommand = vscode.commands.registerCommand('quiz.createSample', async () => {
+	const createSampleCommand = vscode.commands.registerCommand('quiz-file-support.createSample', async () => {
 		const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 		if (!workspaceFolder) {
 			vscode.window.showErrorMessage('No workspace folder found');
@@ -166,24 +261,32 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	// Register event listeners
-	const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(validateQuizFile);
-	const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument(event => {
-		validateQuizFile(event.document);
+	const diagnoseCommand = vscode.commands.registerCommand('quiz-file-support.diagnoseDetection', () => {
+		const editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const document = editor.document;
+			const info = `
+File: ${document.fileName}
+Language ID: ${document.languageId}
+Extension: ${document.fileName.split('.').pop()}
+Is Quiz File: ${document.fileName.endsWith('.quiz')}
+File Size: ${document.getText().length} characters
+			`.trim();
+			vscode.window.showInformationMessage(info, { modal: true });
+		} else {
+			vscode.window.showWarningMessage('No active editor found');
+		}
 	});
-	const onDidSaveTextDocument = vscode.workspace.onDidSaveTextDocument(validateQuizFile);
 
-	// Validate all open quiz files
-	vscode.workspace.textDocuments.forEach(validateQuizFile);
-
-	// Add subscriptions
-	context.subscriptions.push(
-		validateCommand,
-		createSampleCommand,
-		onDidOpenTextDocument,
-		onDidChangeTextDocument,
-		onDidSaveTextDocument
-	);
+	context.subscriptions.push(validateCommand, createSampleCommand, diagnoseCommand);
 }
 
-export function deactivate() {}
+function isQuizFile(document: vscode.TextDocument): boolean {
+	return document.fileName.endsWith('.quiz');
+}
+
+export function deactivate() {
+	if (diagnosticCollection) {
+		diagnosticCollection.dispose();
+	}
+}

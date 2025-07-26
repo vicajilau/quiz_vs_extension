@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "title": "Test Quiz",
+    "description": "Testing validation",
+    "version": 1.0,
+    "author": "Test Author"
+  },
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "text": "Test question with invalid index", dfbrr 
+      "options": ["A", "B", "C"],
+      "correct_answers": [0, 5]
+    }
+  ]
+}

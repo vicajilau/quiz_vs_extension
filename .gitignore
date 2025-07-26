@@ -3,3 +3,6 @@ dist
 node_modules
 .vscode-test/
 *.vsix
+
+# Ignore quiz files in root (keep only samples/)
+/*.quiz
