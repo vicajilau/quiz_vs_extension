@@ -1,0 +1,73 @@
+{
+  "Quiz Template": {
+    "prefix": "quiz",
+    "body": [
+      "{",
+      "  \"metadata\": {",
+      "    \"title\": \"$1\",",
+      "    \"description\": \"$2\",",
+      "    \"version\": 1.0,",
+      "    \"author\": \"$3\"",
+      "  },",
+      "  \"questions\": [",
+      "    $0",
+      "  ]",
+      "}"
+    ],
+    "description": "Basic quiz template"
+  },
+  "Multiple Choice Question": {
+    "prefix": "mcq",
+    "body": [
+      "{",
+      "  \"type\": \"multiple_choice\",",
+      "  \"text\": \"$1\",",
+      "  \"options\": [\"$2\", \"$3\", \"$4\", \"$5\"],",
+      "  \"correct_answers\": [$6]$0",
+      "}"
+    ],
+    "description": "Multiple choice question template"
+  },
+  "Multiple Choice Question with Multiple Answers": {
+    "prefix": "mcq-multi",
+    "body": [
+      "{",
+      "  \"type\": \"multiple_choice\",",
+      "  \"text\": \"$1\",",
+      "  \"options\": [\"$2\", \"$3\", \"$4\", \"$5\"],",
+      "  \"correct_answers\": [$6, $7],",
+      "  \"allow_multiple\": true$0",
+      "}"
+    ],
+    "description": "Multiple choice question with multiple correct answers"
+  },
+  "Question with Explanation": {
+    "prefix": "mcq-explain",
+    "body": [
+      "{",
+      "  \"type\": \"multiple_choice\",",
+      "  \"text\": \"$1\",",
+      "  \"options\": [\"$2\", \"$3\", \"$4\", \"$5\"],",
+      "  \"correct_answers\": [$6],",
+      "  \"explanation\": \"$7\",",
+      "  \"points\": ${8:1}$0",
+      "}"
+    ],
+    "description": "Multiple choice question with explanation and points"
+  },
+  "Metadata Block": {
+    "prefix": "metadata",
+    "body": [
+      "\"metadata\": {",
+      "  \"title\": \"$1\",",
+      "  \"description\": \"$2\",",
+      "  \"version\": ${3:1.0},",
+      "  \"author\": \"$4\",",
+      "  \"difficulty\": \"${5|easy,medium,hard|}\",",
+      "  \"time_limit\": ${6:30},",
+      "  \"tags\": [\"$7\"]$0",
+      "}"
+    ],
+    "description": "Complete metadata block with optional fields"
+  }
+}

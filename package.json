@@ -1,0 +1,126 @@
+{
+  "name": "quiz-validator",
+  "displayName": "QUIZ Validator",
+  "description": "VS Code extension for validating quiz file formats with JSON schema validation and syntax highlighting",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "quiz",
+    "validation",
+    "json",
+    "education",
+    "assessment"
+  ],
+  "activationEvents": [
+    "onLanguage:quiz"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "quiz",
+        "aliases": [
+          "Quiz",
+          "quiz"
+        ],
+        "extensions": [
+          ".quiz"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "quiz",
+        "scopeName": "source.quiz",
+        "path": "./syntaxes/quiz.tmLanguage.json"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "*.quiz",
+        "url": "./schemas/quiz-schema.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "quiz.validate",
+        "title": "Validate Quiz File",
+        "category": "Quiz"
+      },
+      {
+        "command": "quiz.createSample",
+        "title": "Create Sample Quiz",
+        "category": "Quiz"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceExtname == .quiz",
+          "command": "quiz.validate",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "resourceExtname == .quiz",
+          "command": "quiz.validate",
+          "group": "navigation"
+        }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "quiz",
+        "path": "./snippets/quiz.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.102.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "eslint": "^9.25.1",
+    "esbuild": "^0.25.3",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.8.3",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vicajilau/quiz_vs_extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vicajilau/quiz_vs_extension/issues"
+  },
+  "homepage": "https://github.com/vicajilau/quiz_vs_extension#readme"
+}

@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Quiz Format Schema",
+  "description": "Schema for validating quiz file format",
+  "type": "object",
+  "required": [
+    "metadata",
+    "questions"
+  ],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "version",
+        "author"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the quiz",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the quiz",
+          "minLength": 1
+        },
+        "version": {
+          "type": "number",
+          "description": "Version number of the quiz",
+          "minimum": 0
+        },
+        "author": {
+          "type": "string",
+          "description": "Author of the quiz",
+          "minLength": 1
+        },
+        "created_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the quiz was created"
+        },
+        "modified_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the quiz was last modified"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorizing the quiz",
+          "items": {
+            "type": "string"
+          }
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "medium",
+            "hard"
+          ],
+          "description": "Difficulty level of the quiz"
+        },
+        "time_limit": {
+          "type": "integer",
+          "description": "Time limit in minutes",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "questions": {
+      "type": "array",
+      "description": "Array of quiz questions",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "text"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "multiple_choice"
+            ],
+            "description": "Type of question - currently only multiple_choice is supported"
+          },
+          "text": {
+            "type": "string",
+            "description": "The question text",
+            "minLength": 1
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Optional explanation for the question"
+          },
+          "points": {
+            "type": "integer",
+            "description": "Points awarded for correct answer",
+            "minimum": 1,
+            "default": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "multiple_choice"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "options",
+                "correct_answers"
+              ],
+              "properties": {
+                "options": {
+                  "type": "array",
+                  "description": "Array of answer options",
+                  "minItems": 2,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "correct_answers": {
+                  "type": "array",
+                  "description": "Array of indices of correct answers",
+                  "minItems": 1,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "allow_multiple": {
+                  "type": "boolean",
+                  "description": "Whether multiple answers can be selected",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}
