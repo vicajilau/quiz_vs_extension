@@ -1,0 +1,10 @@
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "text": "Test question",
+      "options": ["A", "B"],
+      "correct_answers": [0, 5]
+    }
+  ]
+}

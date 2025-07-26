@@ -139,6 +139,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Function to validate quiz file
 	function validateQuizFile(document: vscode.TextDocument) {
+		console.log('=== STARTING VALIDATION ===');
 		console.log('Validating document:', document.fileName, 'Language:', document.languageId);
 		
 		if (!document.fileName.endsWith('.quiz')) {
@@ -151,14 +152,25 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		try {
 			const text = document.getText();
+			console.log('File content length:', text.length);
+			console.log('File content preview:', text.substring(0, 100) + '...');
+			
 			const quiz: QuizFile = JSON.parse(text);
+			console.log('JSON parsed successfully');
+			console.log('Quiz object:', JSON.stringify(quiz, null, 2));
 			
 			// Validate against JSON schema
+			console.log('Starting schema validation...');
 			const isValid = validate(quiz);
+			console.log('Schema validation result:', isValid);
+			console.log('Validation errors:', validate.errors);
+			
 			if (!isValid && validate.errors) {
+				console.log('Found', validate.errors.length, 'schema errors');
 				for (const error of validate.errors) {
 					const range = new vscode.Range(0, 0, 0, 0); // Default range
 					const message = `${(error as any).instancePath || 'Root'}: ${error.message}`;
+					console.log('Adding diagnostic:', message);
 					const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
 					diagnostic.source = 'quiz-validator';
 					diagnostics.push(diagnostic);
@@ -166,15 +178,20 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Custom validation logic
+			console.log('Starting custom validation...');
 			if (quiz.questions) {
+				console.log('Found', quiz.questions.length, 'questions');
 				quiz.questions.forEach((question, index) => {
+					console.log(`Validating question ${index + 1}:`, question);
 					if (question.type === 'multiple_choice') {
 						// Validate correct_answers indices
 						if (question.correct_answers) {
+							console.log('Checking correct_answers:', question.correct_answers);
 							for (const answerIndex of question.correct_answers) {
 								if (answerIndex < 0 || answerIndex >= question.options.length) {
 									const range = new vscode.Range(0, 0, 0, 0);
 									const message = `Question ${index + 1}: correct_answers contains invalid index ${answerIndex}. Valid range: 0-${question.options.length - 1}`;
+									console.log('Adding custom diagnostic:', message);
 									const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
 									diagnostic.source = 'quiz-validator';
 									diagnostics.push(diagnostic);
@@ -186,16 +203,20 @@ export function activate(context: vscode.ExtensionContext) {
 						if (question.options.length < 2) {
 							const range = new vscode.Range(0, 0, 0, 0);
 							const message = `Question ${index + 1}: multiple_choice questions must have at least 2 options`;
+							console.log('Adding warning diagnostic:', message);
 							const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Warning);
 							diagnostic.source = 'quiz-validator';
 							diagnostics.push(diagnostic);
 						}
 					}
 				});
+			} else {
+				console.log('No questions found in quiz object');
 			}
 
 		} catch (error) {
 			// JSON parsing error
+			console.log('JSON parsing error:', error);
 			const range = new vscode.Range(0, 0, 0, 0);
 			const message = `Invalid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`;
 			const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
@@ -203,8 +224,10 @@ export function activate(context: vscode.ExtensionContext) {
 			diagnostics.push(diagnostic);
 		}
 
+		console.log('Total diagnostics found:', diagnostics.length);
 		console.log('Setting diagnostics:', diagnostics.length, 'errors found');
 		diagnosticCollection.set(document.uri, diagnostics);
+		console.log('=== VALIDATION COMPLETE ===');
 	}
 
 	// Commands
