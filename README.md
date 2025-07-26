@@ -1,151 +1,307 @@
-# QUIZ Validator
+<p align="center">
+  <img src=".github/assets/icon.png" alt="Quiz logo" width="128" height="128">
+<h1 align="center">QUIZ VS Code Extension</h1>
 
-A Visual Studio Code extension for validating quiz file formats with JSON schema validation and syntax highlighting.
+<p align="center">
+  <img src="https://github.com/vicajilau/quiz_vs_extension/workflows/CI%20-%20Test%20Extension/badge.svg" alt="CI">
+  <img src="https://github.com/vicajilau/quiz_vs_extension/workflows/Publish%20Extension/badge.svg" alt="CD">
+</p>
+
+A VS Code extension that provides comprehensive support for `.quiz` files with JSON validation, syntax highlighting, and real-time diagnostics.
+
+![QUIZ Extension Demo](.github/assets/demo.png)
+
+_The extension automatically detects `.quiz` files and provides real-time validation with detailed error messages, as shown above where invalid `correct_answers` indices are highlighted with clear diagnostic messages._
 
 ## Features
 
-- **JSON Schema Validation**: Validates `.quiz` files against a comprehensive schema
-- **Real-time Diagnostics**: Shows validation errors and warnings as you type
-- **Syntax Highlighting**: Custom syntax highlighting for quiz files
-- **Code Snippets**: Pre-defined snippets for creating quiz questions
-- **Commands**: Validate quiz files and create sample quizzes
-- **Extensible**: Designed to support multiple question types (currently supports `multiple_choice`)
+- **Automatic recognition**: `.quiz` files are automatically recognized with custom language support
+- **Schema validation**: Real-time validation of quiz file structure using JSON Schema
+- **Advanced diagnostics**: Detects structure errors, missing fields, and incorrect types
+- **Specific validations**:
+  - Valid question types (extensible architecture)
+  - Correct answer indices within valid ranges
+  - Required metadata fields
+  - Minimum option requirements for multiple choice questions
+- **Syntax highlighting**: Quiz-specific JSON highlighting
+- **Code snippets**: Pre-built snippets for creating questions quickly
+- **Commands**: Manual validation and sample quiz creation
 
-## Quiz File Format
+## Quiz File Structure
 
-Quiz files use JSON format with the following structure:
+### Basic Structure
 
 ```json
 {
   "metadata": {
-    "title": "Quiz Title",
-    "description": "Quiz description",
+    "title": "Sample Quiz",
+    "description": "A comprehensive quiz example",
     "version": 1.0,
-    "author": "Author Name"
+    "author": "Quiz Author",
+    "created_date": "2025-01-01T00:00:00Z",
+    "tags": ["education", "assessment"]
   },
   "questions": [
     {
       "type": "multiple_choice",
-      "text": "Question text?",
-      "options": ["Option 1", "Option 2", "Option 3"],
-      "correct_answers": [1, 2]
+      "text": "What is the capital of France?",
+      "options": ["Madrid", "Paris", "Rome", "Berlin"],
+      "correct_answers": [1]
     }
   ]
 }
 ```
 
-## Supported Question Types
+### Multiple Choice Questions
 
-### Multiple Choice (`multiple_choice`)
-
-- Supports multiple correct answers
-- Validates that `correct_answers` indices are within the options range
-- Requires at least 2 options
-
-## Extension Commands
-
-- `Quiz: Validate Quiz File` - Manually validate the current quiz file
-- `Quiz: Create Sample Quiz` - Create a sample quiz file in your workspace
-
-## Installation
-
-### For Development
-
-1. Clone this repository
-2. Run `npm install` to install dependencies
-3. Press `F5` to run the extension in a new Extension Development Host window
-
-### For Production
-
-The extension will be available in the VS Code Marketplace once published.
-
-## Usage
-
-1. Create or open a `.quiz` file
-2. The extension will automatically:
-   - Apply syntax highlighting
-   - Validate the file structure
-   - Show errors and warnings in the Problems panel
-3. Use `Ctrl+Shift+P` to access quiz commands
-
-## Validation Rules
-
-The extension validates:
-
-- Required metadata fields (title, description, version, author)
-- Question structure and types
-- Option arrays have at least 2 items for multiple choice
-- `correct_answers` indices are valid (within options range)
-- JSON syntax and structure
-
-## Development
-
-### Building
-
-```bash
-npm run compile
+```json
+{
+  "type": "multiple_choice",
+  "text": "Which of the following are programming languages?",
+  "options": ["Python", "HTML", "C++", "CSS"],
+  "correct_answers": [0, 2],
+  "points": 2,
+  "explanation": "Python and C++ are programming languages, while HTML and CSS are markup/styling languages."
+}
 ```
+
+## Requirements
+
+- VS Code 1.102.0 or higher
+
+## Commands
+
+- `Quiz: Validate Quiz File`: Manually validate the current quiz file
+- `Quiz: Create Sample Quiz`: Create a sample quiz file in your workspace
+
+## Development Installation
+
+1. **Clone this repository**
+
+   ```bash
+   git clone https://github.com/vicajilau/quiz_vs_extension.git
+   cd quiz_vs_extension
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Compile the extension**
+
+   ```bash
+   npm run compile
+   ```
+
+4. **Test the extension**
+   - Press `F5` to open a new VS Code window with the extension loaded
+   - Create or open a `.quiz` file to test the features
+
+## Development and Commands
+
+### Main Commands
+
+- `npm run compile`: Compile TypeScript and run linting
+- `npm run watch`: Compile in watch mode (recompiles automatically)
+- `npm run test`: Run automated tests
+- `npm run package`: Create VSIX package for distribution
+- `npm run vscode:prepublish`: Prepare for publishing to marketplace
+
+### Development Workflow
+
+1. **During active development:**
+
+   ```bash
+   npm run watch
+   ```
+
+   This maintains automatic compilation while you edit the code.
+
+2. **To test changes:**
+
+   - Press `F5` to launch extension in debug mode
+   - Use `Ctrl+Shift+F5` to reload the extension window
+
+3. **Before committing:**
+
+   ```bash
+   npm run compile  # Verify everything compiles without errors
+   ```
+
+4. **To create a new version:**
+
+   ```bash
+   # 1. Compile and verify
+   npm run compile
+
+   # 2. Run tests to ensure quality
+   npm test
+
+   # 3. Create VSIX package
+   npm run package
+
+   # 4. Install locally to test
+   code --install-extension quiz-validator-0.0.1.vsix
+   ```
 
 ### Testing
 
+The extension includes comprehensive validation to ensure quiz file accuracy:
+
+- **JSON Schema validation**: Validates against comprehensive schema
+- **Type validation**: Ensures correct data types for all fields
+- **Range validation**: Verifies `correct_answers` indices are valid
+- **Structure validation**: Confirms required fields and proper nesting
+- **Custom validation**: Question-type specific validation rules
+
 ```bash
+# Run all tests
 npm test
+
+# Run tests in watch mode during development
+npm run test:watch
+
+# Test from VS Code: Use "Run Extension Tests" debug configuration
 ```
 
-### Packaging
+### Validation Rules
 
-```bash
-npm run package
+The extension validates:
+
+- **Metadata requirements**:
+
+  - `title`: Non-empty string
+  - `description`: Non-empty string
+  - `version`: Non-negative number
+  - `author`: Non-empty string
+
+- **Question validation**:
+
+  - Valid question types (currently `multiple_choice`, extensible)
+  - Non-empty question text
+  - Minimum 2 options for multiple choice
+  - `correct_answers` indices within valid range (0 to options.length-1)
+
+- **JSON structure**: Proper JSON syntax and schema compliance
+
+### Extensible Architecture
+
+The extension is designed to easily support new question types:
+
+```typescript
+// Currently supported
+type QuestionType = "multiple_choice";
+
+// Future support planned
+type QuestionType =
+  | "multiple_choice"
+  | "true_false"
+  | "fill_in_blank"
+  | "essay"
+  | "matching";
 ```
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Project Structure
 
-For example:
+```
+quiz_vs_extension/
+├── .github/
+│   └── assets/               # Demo images and assets
+│       ├── demo.png         # Demo screenshot
+│       └── icon.png         # Extension icon
+├── schemas/
+│   └── quiz-schema.json     # JSON Schema for validation
+├── syntaxes/
+│   └── quiz.tmLanguage.json # Grammar for syntax highlighting
+├── snippets/
+│   └── quiz.json           # Code snippets
+├── samples/
+│   └── sample.quiz         # Example quiz file
+├── src/
+│   └── extension.ts        # Main extension code
+├── dist/                   # Compiled JavaScript (generated)
+├── package.json            # Extension configuration
+├── language-configuration.json # Language configuration
+└── README.md
+```
 
-This extension contributes the following settings:
+## Contributing
 
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
+Contributions are welcome! Please follow these steps:
 
-## Known Issues
+### To Contribute
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+1. **Fork the repository**
+2. **Create a branch for your feature:**
 
-## Release Notes
+   ```bash
+   git checkout -b feature/new-question-type
+   ```
 
-Users appreciate release notes as you update your extension.
+3. **Make changes and compile:**
 
-### 1.0.0
+   ```bash
+   npm run compile  # Verify it compiles without errors
+   ```
 
-Initial release of ...
+4. **Test the extension:**
 
-### 1.0.1
+   ```bash
+   # Create test package
+   npm run package
 
-Fixed issue #.
+   # Install it locally
+   code --install-extension quiz-validator-x.y.z.vsix
+   ```
 
-### 1.1.0
+5. **Commit and push:**
 
-Added features X, Y, and Z.
+   ```bash
+   git add .
+   git commit -m "feat: add true_false question type support"
+   git push origin feature/new-question-type
+   ```
 
----
+6. **Create Pull Request**
 
-## Following extension guidelines
+### Conventions
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/)
 
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+  - `feat:` for new features (e.g., new question types)
+  - `fix:` for bug fixes
+  - `docs:` for documentation changes
+  - `refactor:` for refactoring
 
-## Working with Markdown
+- **Code**:
+  - Use TypeScript with strict types
+  - Run linting before commit
+  - Add comments for complex validation logic
+  - Update JSON schema when adding new question types
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+### Adding New Question Types
 
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+To add a new question type:
 
-## For more information
+1. **Update the JSON schema** (`schemas/quiz-schema.json`)
+2. **Add TypeScript interfaces** (`src/extension.ts`)
+3. **Implement validation logic** for the new type
+4. **Add code snippets** (`snippets/quiz.json`)
+5. **Update documentation** and examples
 
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+### Reporting Issues
 
-**Enjoy!**
+If you find a bug or have a suggestion:
+
+1. **Check** that a similar issue doesn't already exist
+2. **Create a new issue** with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Example `.quiz` file if relevant
+   - VS Code and extension version
+
+## License
+
+This project is under the MIT license.

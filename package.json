@@ -18,9 +18,6 @@
     "education",
     "assessment"
   ],
-  "activationEvents": [
-    "onLanguage:quiz"
-  ],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [
