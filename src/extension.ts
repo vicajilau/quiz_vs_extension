@@ -100,10 +100,17 @@ export function activate(context: vscode.ExtensionContext) {
 	// Force language detection for .quiz files
 	context.subscriptions.push(
 		vscode.workspace.onDidOpenTextDocument(document => {
+			console.log('=== Document opened ===');
+			console.log('File:', document.fileName);
+			console.log('Language:', document.languageId);
+			console.log('Ends with .quiz:', document.fileName.endsWith('.quiz'));
+			
 			if (document.fileName.endsWith('.quiz') && document.languageId !== 'quiz') {
+				console.log('Setting language to quiz...');
 				vscode.languages.setTextDocumentLanguage(document, 'quiz');
 			}
 			if (isQuizFile(document)) {
+				console.log('Starting validation for opened document...');
 				validateQuizFile(document);
 			}
 		})
@@ -111,11 +118,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Also check active editor on activation
 	if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName.endsWith('.quiz') && vscode.window.activeTextEditor.document.languageId !== 'quiz') {
+		console.log('Setting language for active editor...');
 		vscode.languages.setTextDocumentLanguage(vscode.window.activeTextEditor.document, 'quiz');
 	}
 
 	// Validate files when opened or changed
 	if (vscode.window.activeTextEditor && isQuizFile(vscode.window.activeTextEditor.document)) {
+		console.log('Validating active editor on activation...');
 		validateQuizFile(vscode.window.activeTextEditor.document);
 	}
 
@@ -233,11 +242,32 @@ export function activate(context: vscode.ExtensionContext) {
 	// Commands
 	const validateCommand = vscode.commands.registerCommand('quiz-file-support.validateFile', () => {
 		const activeEditor = vscode.window.activeTextEditor;
+		console.log('=== Manual Validation Command ===');
+		console.log('Active editor:', !!activeEditor);
+		if (activeEditor) {
+			console.log('File name:', activeEditor.document.fileName);
+			console.log('Language ID:', activeEditor.document.languageId);
+			console.log('Is quiz file:', isQuizFile(activeEditor.document));
+		}
+		
 		if (activeEditor && isQuizFile(activeEditor.document)) {
+			console.log('Starting manual validation...');
 			validateQuizFile(activeEditor.document);
 			vscode.window.showInformationMessage('Quiz file validation completed!');
 		} else {
 			vscode.window.showWarningMessage('Please open a .quiz file to validate.');
+		}
+	});
+
+	const forceValidateCommand = vscode.commands.registerCommand('quiz-file-support.forceValidate', () => {
+		const activeEditor = vscode.window.activeTextEditor;
+		console.log('=== Force Validation Command ===');
+		if (activeEditor) {
+			console.log('Force validating:', activeEditor.document.fileName);
+			validateQuizFile(activeEditor.document);
+			vscode.window.showInformationMessage('Force validation completed!');
+		} else {
+			vscode.window.showWarningMessage('No active editor found.');
 		}
 	});
 
@@ -301,7 +331,7 @@ File Size: ${document.getText().length} characters
 		}
 	});
 
-	context.subscriptions.push(validateCommand, createSampleCommand, diagnoseCommand);
+	context.subscriptions.push(validateCommand, forceValidateCommand, createSampleCommand, diagnoseCommand);
 }
 
 function isQuizFile(document: vscode.TextDocument): boolean {
