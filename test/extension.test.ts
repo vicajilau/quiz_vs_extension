@@ -53,7 +53,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -77,7 +77,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Valid Quiz",
                     description: "A properly formatted quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -103,7 +103,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Multi-Answer Quiz",
                     description: "Quiz with multiple correct answers",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -152,7 +152,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 }
             };
@@ -171,7 +171,7 @@ suite('QUIZ Extension Test Suite', () => {
             const invalidQuiz = {
                 metadata: {
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -201,7 +201,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Invalid Quiz",
                     description: "Quiz with invalid correct_answers",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -229,7 +229,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Invalid Quiz",
                     description: "Quiz with negative index",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -257,7 +257,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Warning Quiz",
                     description: "Quiz with insufficient options",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -287,7 +287,7 @@ suite('QUIZ Extension Test Suite', () => {
                 "metadata": {
                     "title": "Test Quiz",
                     "description": "Invalid JSON",
-                    "version": 1.0,
+                    "version": "1.0",
                     "author": "Test Author"
                 },
                 "questions": [
@@ -336,7 +336,7 @@ suite('QUIZ Extension Test Suite', () => {
             const invalidQuiz = {
                 metadata: {
                     title: "Test Quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                     // missing description
                 },
@@ -393,7 +393,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0
+                    version: "1.0"
                     // missing author
                 },
                 questions: [
@@ -421,7 +421,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: 123, // should be string
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -446,7 +446,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: "1.0", // should be number
+                    version: 123, // should be string, not number
                     author: "Test Author"
                 },
                 questions: [
@@ -473,7 +473,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -498,7 +498,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -525,7 +525,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -553,7 +553,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -581,7 +581,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -609,7 +609,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -634,7 +634,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -659,7 +659,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -686,7 +686,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -714,7 +714,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Test Quiz",
                     description: "A test quiz",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Test Author"
                 },
                 questions: [
@@ -741,7 +741,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Complex Quiz",
                     description: "A quiz with multiple questions and various configurations",
-                    version: 2.0,
+                    version: "2.0",
                     author: "Quiz Master",
                     created_date: "2025-01-01T00:00:00Z",
                     tags: ["education", "test"]
@@ -775,7 +775,7 @@ suite('QUIZ Extension Test Suite', () => {
                 metadata: {
                     title: "Sample Quiz",
                     description: "A multiple-choice quiz with multiple correct answers possible",
-                    version: 1.0,
+                    version: "1.0",
                     author: "Author Name"
                 },
                 questions: [

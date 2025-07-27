@@ -177,14 +177,21 @@ File Size: ${document.getText().length} characters
 			try {
 				const schemaContent = fs.readFileSync(schemaPath, 'utf8');
 				schema = JSON.parse(schemaContent);
-				const ajv = new Ajv({ allErrors: true });
+				const ajv = new Ajv({ allErrors: true, strict: false });
 				validate = ajv.compile(schema);
 				schemaLoaded = true;
+				console.log(`Schema loaded successfully from: ${schemaPath}`);
 				break;
 			} catch (error) {
+				console.error(`Failed to load schema from ${schemaPath}:`, error);
 				continue;
 			}
 		}
+	}
+	
+	if (!schemaLoaded) {
+		console.error('Failed to load quiz schema from any location');
+		console.error('Tried paths:', possibleSchemaPaths);
 	}
 
 	// Force language detection for .quiz files
@@ -237,50 +244,42 @@ File Size: ${document.getText().length} characters
 		
 		try {
 			const text = document.getText();
-			const quiz: QuizFile = JSON.parse(text);
+			const quiz: any = JSON.parse(text); // Use any to allow flexible validation
 			
-			// Validate against JSON schema only if validate function is available
+			// Basic structure validation
+			if (!quiz.metadata) {
+				const range = findPropertyRange(document, 'metadata') || new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, 'Missing required property: metadata', vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			} else {
+				// Validate metadata fields
+				validateMetadata(quiz.metadata, document, diagnostics);
+			}
+
+			if (!quiz.questions) {
+				const range = findPropertyRange(document, 'questions') || new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, 'Missing required property: questions', vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			} else {
+				// Validate questions array
+				validateQuestions(quiz.questions, document, diagnostics);
+			}
+			
+			// Validate against JSON schema if available
 			if (validate) {
 				const isValid = validate(quiz);
 				
 				if (!isValid && validate.errors) {
 					for (const error of validate.errors) {
-						const range = new vscode.Range(0, 0, 0, 0); // Default range
-						const message = `${(error as any).instancePath || 'Root'}: ${error.message}`;
+						const range = findErrorRange(document, error) || new vscode.Range(0, 0, 0, 0);
+						const message = formatSchemaError(error);
 						const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
-						diagnostic.source = 'quiz-validator';
+						diagnostic.source = 'quiz-schema';
 						diagnostics.push(diagnostic);
 					}
 				}
-			}
-
-			// Custom validation logic
-			if (quiz.questions) {
-				quiz.questions.forEach((question, index) => {
-					if (question.type === 'multiple_choice') {
-						// Validate correct_answers indices
-						if (question.correct_answers) {
-							for (const answerIndex of question.correct_answers) {
-								if (answerIndex < 0 || answerIndex >= question.options.length) {
-									const range = new vscode.Range(0, 0, 0, 0);
-									const message = `Question ${index + 1}: correct_answers contains invalid index ${answerIndex}. Valid range: 0-${question.options.length - 1}`;
-									const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
-									diagnostic.source = 'quiz-validator';
-									diagnostics.push(diagnostic);
-								}
-							}
-						}
-
-						// Validate minimum options
-						if (question.options.length < 2) {
-							const range = new vscode.Range(0, 0, 0, 0);
-							const message = `Question ${index + 1}: multiple_choice questions must have at least 2 options`;
-							const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Warning);
-							diagnostic.source = 'quiz-validator';
-							diagnostics.push(diagnostic);
-						}
-					}
-				});
 			}
 
 		} catch (error) {
@@ -293,6 +292,144 @@ File Size: ${document.getText().length} characters
 		}
 
 		diagnosticCollection.set(document.uri, diagnostics);
+	}
+
+	// Helper function to validate metadata
+	function validateMetadata(metadata: any, document: vscode.TextDocument, diagnostics: vscode.Diagnostic[]) {
+		const requiredFields = ['title', 'description', 'version', 'author'];
+		
+		for (const field of requiredFields) {
+			if (!metadata[field]) {
+				const range = findPropertyRange(document, `metadata.${field}`) || new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, `Missing required property: metadata.${field}`, vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			} else {
+				// Type validation - all fields must be strings
+				if (typeof metadata[field] !== 'string') {
+					const range = findPropertyRange(document, `metadata.${field}`) || new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `metadata.${field} must be a string`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				}
+			}
+		}
+	}
+
+	// Helper function to validate questions
+	function validateQuestions(questions: any, document: vscode.TextDocument, diagnostics: vscode.Diagnostic[]) {
+		if (!Array.isArray(questions)) {
+			const range = findPropertyRange(document, 'questions') || new vscode.Range(0, 0, 0, 0);
+			const diagnostic = new vscode.Diagnostic(range, 'questions must be an array', vscode.DiagnosticSeverity.Error);
+			diagnostic.source = 'quiz-validator';
+			diagnostics.push(diagnostic);
+			return;
+		}
+
+		questions.forEach((question: any, index: number) => {
+			// Validate question type
+			if (!question.type) {
+				const range = new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: type`, vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			} else if (question.type !== 'multiple_choice') {
+				const range = new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Invalid question type '${question.type}'. Supported types: multiple_choice`, vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			}
+
+			// Validate question text
+			if (!question.text) {
+				const range = new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: text`, vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			} else if (typeof question.text !== 'string') {
+				const range = new vscode.Range(0, 0, 0, 0);
+				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: text must be a string`, vscode.DiagnosticSeverity.Error);
+				diagnostic.source = 'quiz-validator';
+				diagnostics.push(diagnostic);
+			}
+
+			// Validate multiple choice specific fields
+			if (question.type === 'multiple_choice') {
+				if (!question.options) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: options`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				} else if (!Array.isArray(question.options)) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: options must be an array`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				} else if (question.options.length < 2) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: multiple_choice questions must have at least 2 options`, vscode.DiagnosticSeverity.Warning);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				}
+
+				if (!question.correct_answers) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: correct_answers`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				} else if (question.correct_answers === null) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: correct_answers cannot be null`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				} else if (!Array.isArray(question.correct_answers)) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: correct_answers must be an array`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				} else if (question.correct_answers.length === 0) {
+					const range = new vscode.Range(0, 0, 0, 0);
+					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: correct_answers cannot be empty`, vscode.DiagnosticSeverity.Error);
+					diagnostic.source = 'quiz-validator';
+					diagnostics.push(diagnostic);
+				} else if (question.options && Array.isArray(question.options)) {
+					// Validate correct_answers indices
+					for (const answerIndex of question.correct_answers) {
+						if (typeof answerIndex !== 'number' || answerIndex < 0 || answerIndex >= question.options.length) {
+							const range = new vscode.Range(0, 0, 0, 0);
+							const message = `Question ${index + 1}: correct_answers contains invalid index ${answerIndex}. Valid range: 0-${question.options.length - 1}`;
+							const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
+							diagnostic.source = 'quiz-validator';
+							diagnostics.push(diagnostic);
+						}
+					}
+				}
+			}
+		});
+	}
+
+	// Helper function to find property range in document
+	function findPropertyRange(document: vscode.TextDocument, property: string): vscode.Range | null {
+		const text = document.getText();
+		const pattern = new RegExp(`"${property.replace('.', '"[\\s\\S]*?"')}"`, 'g');
+		const match = pattern.exec(text);
+		if (match) {
+			const pos = document.positionAt(match.index);
+			return new vscode.Range(pos, pos);
+		}
+		return null;
+	}
+
+	// Helper function to find error range for schema errors
+	function findErrorRange(document: vscode.TextDocument, error: any): vscode.Range | null {
+		// For now, return a default range. Could be improved to find exact locations
+		return new vscode.Range(0, 0, 0, 0);
+	}
+
+	// Helper function to format schema error messages
+	function formatSchemaError(error: any): string {
+		const path = error.instancePath || 'Root';
+		return `${path}: ${error.message}`;
 	}
 }
 

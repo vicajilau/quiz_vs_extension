@@ -30,8 +30,7 @@
         "version": {
           "type": "string",
           "description": "Version of the quiz",
-          "minLength": 1,
-          "pattern": "^[0-9]+\\.[0-9]+$"
+          "minLength": 1
         },
         "author": {
           "type": "string",
@@ -121,6 +120,24 @@
                 "correct_answers"
               ],
               "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "multiple_choice"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string"
+                },
+                "points": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
                 "options": {
                   "type": "array",
                   "description": "Array of answer options",
