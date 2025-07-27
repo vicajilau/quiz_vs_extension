@@ -1,6 +1,6 @@
 <p align="center">
   <img src=".github/assets/icon.png" alt="Quiz logo" width="128" height="128">
-<h1 align="center">QUIZ VS Code Extension</h1>
+<h1 align="center">Quiz VS Code Extension</h1>
 
 <p align="center">
   <img src="https://github.com/vicajilau/quiz_vs_extension/workflows/CI%20-%20Test%20Extension/badge.svg" alt="CI">
