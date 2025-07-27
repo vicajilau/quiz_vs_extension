@@ -6,7 +6,7 @@ import Ajv from 'ajv';
 interface QuizMetadata {
 	title: string;
 	description: string;
-	version: number;
+	version: string;
 	author: string;
 }
 
@@ -108,7 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
 			metadata: {
 				title: "Sample Quiz",
 				description: "A sample quiz with multiple choice questions",
-				version: 1.0,
+				version: "1.0",
 				author: "Quiz Author"
 			},
 			questions: [

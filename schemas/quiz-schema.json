@@ -28,9 +28,10 @@
           "minLength": 1
         },
         "version": {
-          "type": "number",
-          "description": "Version number of the quiz",
-          "minimum": 0
+          "type": "string",
+          "description": "Version of the quiz",
+          "minLength": 1,
+          "pattern": "^[0-9]+\\.[0-9]+$"
         },
         "author": {
           "type": "string",
