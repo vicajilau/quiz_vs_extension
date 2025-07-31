@@ -83,8 +83,8 @@
             "type": "true_false",
             "text": "The Earth is flat.",
             "options": [
-                "Verdadero",
-                "Falso"
+                "True",
+                "False"
             ],
             "correct_answers": [
                 1
@@ -95,8 +95,8 @@
             "type": "true_false",
             "text": "Python is an interpreted programming language.",
             "options": [
-                "Verdadero",
-                "Falso"
+                "True",
+                "False"
             ],
             "correct_answers": [
                 0
