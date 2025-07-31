@@ -2,7 +2,7 @@
   "name": "quiz-file-support",
   "displayName": "QUIZ File Support",
   "description": "VS Code extension for .quiz files with JSON validation and schema support",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "vicajilau",
   "icon": ".github/assets/icon.png",
   "repository": {

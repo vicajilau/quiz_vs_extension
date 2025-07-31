@@ -6,7 +6,7 @@
       "  \"metadata\": {",
       "    \"title\": \"$1\",",
       "    \"description\": \"$2\",",
-      "    \"version\": 1.0,",
+      "    \"version\": \"1.0.0\",",
       "    \"author\": \"$3\"",
       "  },",
       "  \"questions\": [",
@@ -35,25 +35,73 @@
       "  \"type\": \"multiple_choice\",",
       "  \"text\": \"$1\",",
       "  \"options\": [\"$2\", \"$3\", \"$4\", \"$5\"],",
-      "  \"correct_answers\": [$6, $7],",
-      "  \"allow_multiple\": true$0",
+      "  \"correct_answers\": [$6, $7]$0",
       "}"
     ],
     "description": "Multiple choice question with multiple correct answers"
   },
-  "Question with Explanation": {
-    "prefix": "mcq-explain",
+  "Single Choice Question": {
+    "prefix": "scq",
     "body": [
       "{",
-      "  \"type\": \"multiple_choice\",",
+      "  \"type\": \"single_choice\",",
       "  \"text\": \"$1\",",
       "  \"options\": [\"$2\", \"$3\", \"$4\", \"$5\"],",
-      "  \"correct_answers\": [$6],",
-      "  \"explanation\": \"$7\",",
-      "  \"points\": ${8:1}$0",
+      "  \"correct_answers\": [$6]$0",
       "}"
     ],
-    "description": "Multiple choice question with explanation and points"
+    "description": "Single choice question template"
+  },
+  "True/False Question": {
+    "prefix": "tf",
+    "body": [
+      "{",
+      "  \"type\": \"true_false\",",
+      "  \"text\": \"$1\",",
+      "  \"options\": [\"True\", \"False\"],",
+      "  \"correct_answers\": [${2|0,1|}]$0",
+      "}"
+    ],
+    "description": "True/False question template"
+  },
+  "True/False Question (Spanish)": {
+    "prefix": "vf",
+    "body": [
+      "{",
+      "  \"type\": \"true_false\",",
+      "  \"text\": \"$1\",",
+      "  \"options\": [\"Verdadero\", \"Falso\"],",
+      "  \"correct_answers\": [${2|0,1|}]$0",
+      "}"
+    ],
+    "description": "True/False question template in Spanish"
+  },
+  "Question with Explanation": {
+    "prefix": "q-explain",
+    "body": [
+      "{",
+      "  \"type\": \"${1|multiple_choice,single_choice,true_false|}\",",
+      "  \"text\": \"$2\",",
+      "  \"options\": [\"$3\", \"$4\", \"$5\", \"$6\"],",
+      "  \"correct_answers\": [$7],",
+      "  \"explanation\": \"$8\"$0",
+      "}"
+    ],
+    "description": "Question with explanation"
+  },
+  "Question with Points and Explanation": {
+    "prefix": "q-full",
+    "body": [
+      "{",
+      "  \"type\": \"${1|multiple_choice,single_choice,true_false|}\",",
+      "  \"text\": \"$2\",",
+      "  \"options\": [\"$3\", \"$4\", \"$5\", \"$6\"],",
+      "  \"correct_answers\": [$7],",
+      "  \"explanation\": \"$8\",",
+      "  \"points\": ${9:1}$0",
+      "}"
+    ],
+    "description": "Complete question with explanation and points"
   },
   "Metadata Block": {
     "prefix": "metadata",
@@ -61,7 +109,7 @@
       "\"metadata\": {",
       "  \"title\": \"$1\",",
       "  \"description\": \"$2\",",
-      "  \"version\": ${3:1.0},",
+      "  \"version\": \"${3:1.0.0}\",",
       "  \"author\": \"$4\",",
       "  \"difficulty\": \"${5|easy,medium,hard|}\",",
       "  \"time_limit\": ${6:30},",

@@ -7,25 +7,37 @@
   <img src="https://github.com/vicajilau/quiz_vs_extension/workflows/Publish%20Extension/badge.svg" alt="CD">
 </p>
 
-A VS Code extension that provides comprehensive support for `.quiz` files with JSON validation, syntax highlighting, and real-time diagnostics.
+A VS Code extension that provides comprehensive support for `.quiz` files with JSON validation, syntax highlighting, and real-time diagnostics for multiple question types.
 
 ![QUIZ Extension Demo](.github/assets/demo.png)
 
 _The extension automatically detects `.quiz` files and provides real-time validation with detailed error messages, as shown above where invalid `correct_answers` indices are highlighted with clear diagnostic messages._
 
+## 🆕 What's New in v0.2.0
+
+- **Multiple Question Types**: Added support for `single_choice` and `true_false` questions
+- **Enhanced Validation**: Type-specific validation rules for each question type
+- **New Code Snippets**: Quick templates for all question types including bilingual true/false
+- **Improved Sample Generation**: Create comprehensive quiz examples with all question types
+- **Better Error Messages**: More specific validation messages based on question type
+
 ## Features
 
 - **Automatic recognition**: `.quiz` files are automatically recognized with custom language support
+- **Multiple Question Types**: Support for various question formats:
+  - `multiple_choice` - Questions with one or more correct answers
+  - `single_choice` - Questions with exactly one correct answer
+  - `true_false` - Boolean questions with true/false options
 - **Schema validation**: Real-time validation of quiz file structure using JSON Schema
-- **Advanced diagnostics**: Detects structure errors, missing fields, and incorrect types
-- **Specific validations**:
-  - Valid question types (extensible architecture)
+- **Advanced diagnostics**: Comprehensive error detection including:
+  - Structure validation for quiz metadata and questions
+  - Question type-specific validation rules
   - Correct answer indices within valid ranges
-  - Required metadata fields
-  - Minimum option requirements for multiple choice questions
+  - Required field validation for metadata and questions
+  - Type-specific option requirements (e.g., exactly 2 options for true/false)
 - **Syntax highlighting**: Quiz-specific JSON highlighting
-- **Code snippets**: Pre-built snippets for creating questions quickly
-- **Commands**: Manual validation and sample quiz creation
+- **Code snippets**: Pre-built snippets for all question types
+- **Commands**: Manual validation and sample quiz creation with examples of all question types
 
 ## Quiz File Structure
 
@@ -35,8 +47,8 @@ _The extension automatically detects `.quiz` files and provides real-time valida
 {
   "metadata": {
     "title": "Sample Quiz",
-    "description": "A comprehensive quiz example",
-    "version": 1.0,
+    "description": "A comprehensive quiz example with multiple question types",
+    "version": "1.0.0",
     "author": "Quiz Author",
     "created_date": "2025-01-01T00:00:00Z",
     "tags": ["education", "assessment"]
@@ -46,13 +58,18 @@ _The extension automatically detects `.quiz` files and provides real-time valida
       "type": "multiple_choice",
       "text": "What is the capital of France?",
       "options": ["Madrid", "Paris", "Rome", "Berlin"],
-      "correct_answers": [1]
+      "correct_answers": [1],
+      "explanation": "Paris is the capital city of France."
     }
   ]
 }
 ```
 
-### Multiple Choice Questions
+### Question Types
+
+#### Multiple Choice Questions
+
+Supports one or more correct answers:
 
 ```json
 {
@@ -65,6 +82,44 @@ _The extension automatically detects `.quiz` files and provides real-time valida
 }
 ```
 
+#### Single Choice Questions
+
+Must have exactly one correct answer:
+
+```json
+{
+  "type": "single_choice",
+  "text": "What is the most widely used programming language for web development?",
+  "options": ["Python", "JavaScript", "Java", "C++"],
+  "correct_answers": [1],
+  "explanation": "JavaScript is the most widely used programming language for web development."
+}
+```
+
+#### True/False Questions
+
+Must have exactly two options and one correct answer:
+
+```json
+{
+  "type": "true_false",
+  "text": "The Earth is flat.",
+  "options": ["True", "False"],
+  "correct_answers": [1],
+  "explanation": "The Earth is not flat; it is an oblate spheroid, roughly spherical in shape."
+}
+```
+
+```json
+{
+  "type": "true_false",
+  "text": "Python is an interpreted programming language.",
+  "options": ["Verdadero", "Falso"],
+  "correct_answers": [0],
+  "explanation": "Python is indeed an interpreted programming language."
+}
+```
+
 ## Requirements
 
 - VS Code 1.102.0 or higher
@@ -72,7 +127,22 @@ _The extension automatically detects `.quiz` files and provides real-time valida
 ## Commands
 
 - `Quiz: Validate Quiz File`: Manually validate the current quiz file
-- `Quiz: Create Sample Quiz`: Create a sample quiz file in your workspace
+- `Quiz: Create Sample Quiz`: Create a sample quiz file with examples of all question types
+- `Quiz: Diagnose Quiz File Detection`: Troubleshoot file detection issues
+
+## Code Snippets
+
+The extension provides several code snippets to speed up quiz creation:
+
+- `quiz` - Complete quiz template
+- `mcq` - Multiple choice question
+- `mcq-multi` - Multiple choice with multiple correct answers
+- `scq` - Single choice question
+- `tf` - True/False question (English)
+- `vf` - True/False question (Spanish: Verdadero/Falso)
+- `q-explain` - Question with explanation (any type)
+- `q-full` - Complete question with all optional fields
+- `metadata` - Complete metadata block
 
 ## Development Installation
 
@@ -106,8 +176,8 @@ _The extension automatically detects `.quiz` files and provides real-time valida
 - `npm run compile`: Compile TypeScript and run linting
 - `npm run watch`: Compile in watch mode (recompiles automatically)
 - `npm run test`: Run automated tests
-- `npm run package`: Create VSIX package for distribution
-- `npm run vscode:prepublish`: Prepare for publishing to marketplace
+- `npm run vsce:package`: Create VSIX package for distribution
+- `npm run vsce:publish`: Publish extension to VS Code Marketplace
 
 ### Development Workflow
 
@@ -140,10 +210,10 @@ _The extension automatically detects `.quiz` files and provides real-time valida
    npm test
 
    # 3. Create VSIX package
-   npm run package
+   npm run vsce:package
 
    # 4. Install locally to test
-   code --install-extension quiz-validator-0.0.1.vsix
+   code --install-extension quiz-file-support-0.2.0.vsix
    ```
 
 ### Testing
@@ -174,15 +244,19 @@ The extension validates:
 
   - `title`: Non-empty string
   - `description`: Non-empty string
-  - `version`: Non-negative number
+  - `version`: String (semantic versioning recommended)
   - `author`: Non-empty string
 
 - **Question validation**:
 
-  - Valid question types (currently `multiple_choice`, extensible)
+  - Valid question types: `multiple_choice`, `single_choice`, `true_false`
   - Non-empty question text
-  - Minimum 2 options for multiple choice
+  - Type-specific requirements:
+    - **Multiple choice**: Minimum 2 options, one or more correct answers
+    - **Single choice**: Minimum 2 options, exactly one correct answer
+    - **True/false**: Exactly 2 options, exactly one correct answer
   - `correct_answers` indices within valid range (0 to options.length-1)
+  - Optional fields: `explanation`, `points`
 
 - **JSON structure**: Proper JSON syntax and schema compliance
 
@@ -191,13 +265,18 @@ The extension validates:
 The extension is designed to easily support new question types:
 
 ```typescript
-// Currently supported
-type QuestionType = "multiple_choice";
+// Currently supported (v0.2.0)
+type QuestionType = "multiple_choice" | "single_choice" | "true_false";
 
 // Future support planned
 type QuestionType =
   | "multiple_choice"
+  | "single_choice"
   | "true_false"
+  | "fill_in_blank"
+  | "essay"
+  | "matching"
+  | "ordering";
   | "fill_in_blank"
   | "essay"
   | "matching";
@@ -250,10 +329,10 @@ Contributions are welcome! Please follow these steps:
 
    ```bash
    # Create test package
-   npm run package
+   npm run vsce:package
 
    # Install it locally
-   code --install-extension quiz-validator-x.y.z.vsix
+   code --install-extension quiz-file-support-*.vsix
    ```
 
 5. **Commit and push:**
@@ -283,13 +362,24 @@ Contributions are welcome! Please follow these steps:
 
 ### Adding New Question Types
 
-To add a new question type:
+The extension currently supports three question types. To add a new question type:
 
-1. **Update the JSON schema** (`schemas/quiz-schema.json`)
-2. **Add TypeScript interfaces** (`src/extension.ts`)
-3. **Implement validation logic** for the new type
-4. **Add code snippets** (`snippets/quiz.json`)
-5. **Update documentation** and examples
+1. **Update the JSON schema** (`schemas/quiz-schema.json`) with validation rules
+2. **Add TypeScript interfaces** (`src/extension.ts`) following the `BaseQuestion` pattern
+3. **Implement validation logic** for the new type in the validation function
+4. **Add code snippets** (`snippets/quiz.json`) for easy question creation
+5. **Add comprehensive tests** in the test suite
+6. **Update documentation** and examples
+
+Example of adding a new question type:
+
+```typescript
+interface FillInBlankQuestion extends BaseQuestion {
+  type: "fill_in_blank";
+  template: string; // Text with {blanks} to fill
+  answers: string[]; // Possible answers for each blank
+}
+```
 
 ### Reporting Issues
 

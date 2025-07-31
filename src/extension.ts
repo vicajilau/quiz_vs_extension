@@ -10,16 +10,36 @@ interface QuizMetadata {
 	author: string;
 }
 
-interface MultipleChoiceQuestion {
-	type: 'multiple_choice';
+interface BaseQuestion {
+	type: string;
 	text: string;
+	explanation?: string;
+	points?: number;
+}
+
+interface MultipleChoiceQuestion extends BaseQuestion {
+	type: 'multiple_choice';
 	options: string[];
 	correct_answers: number[];
 }
 
+interface SingleChoiceQuestion extends BaseQuestion {
+	type: 'single_choice';
+	options: string[];
+	correct_answers: number[];
+}
+
+interface TrueFalseQuestion extends BaseQuestion {
+	type: 'true_false';
+	options: string[];
+	correct_answers: number[];
+}
+
+type Question = MultipleChoiceQuestion | SingleChoiceQuestion | TrueFalseQuestion;
+
 interface QuizFile {
 	metadata: QuizMetadata;
-	questions: MultipleChoiceQuestion[];
+	questions: Question[];
 }
 
 let diagnosticCollection: vscode.DiagnosticCollection;
@@ -107,8 +127,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const sampleQuiz: QuizFile = {
 			metadata: {
 				title: "Sample Quiz",
-				description: "A sample quiz with multiple choice questions",
-				version: "1.0",
+				description: "A comprehensive quiz example with all question types",
+				version: "1.0.0",
 				author: "Quiz Author"
 			},
 			questions: [
@@ -116,13 +136,36 @@ export function activate(context: vscode.ExtensionContext) {
 					type: "multiple_choice",
 					text: "What is the capital of France?",
 					options: ["Madrid", "Paris", "Rome", "Berlin"],
-					correct_answers: [1]
+					correct_answers: [1],
+					explanation: "Paris is the capital city of France."
 				},
 				{
 					type: "multiple_choice",
 					text: "Which of the following are programming languages?",
 					options: ["Python", "HTML", "C++", "CSS"],
-					correct_answers: [0, 2]
+					correct_answers: [0, 2],
+					explanation: "Python and C++ are programming languages, while HTML and CSS are markup/styling languages."
+				},
+				{
+					type: "single_choice",
+					text: "What is the most widely used programming language for web development?",
+					options: ["Python", "JavaScript", "Java", "C++"],
+					correct_answers: [1],
+					explanation: "JavaScript is the most widely used programming language for web development."
+				},
+				{
+					type: "true_false",
+					text: "The Earth is flat.",
+					options: ["True", "False"],
+					correct_answers: [1],
+					explanation: "The Earth is not flat; it is an oblate spheroid, roughly spherical in shape."
+				},
+				{
+					type: "true_false",
+					text: "Python is an interpreted programming language.",
+					options: ["Verdadero", "Falso"],
+					correct_answers: [0],
+					explanation: "Python is indeed an interpreted programming language."
 				}
 			]
 		};
@@ -333,9 +376,9 @@ File Size: ${document.getText().length} characters
 				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: type`, vscode.DiagnosticSeverity.Error);
 				diagnostic.source = 'quiz-validator';
 				diagnostics.push(diagnostic);
-			} else if (question.type !== 'multiple_choice') {
+			} else if (!['multiple_choice', 'single_choice', 'true_false'].includes(question.type)) {
 				const range = new vscode.Range(0, 0, 0, 0);
-				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Invalid question type '${question.type}'. Supported types: multiple_choice`, vscode.DiagnosticSeverity.Error);
+				const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Invalid question type '${question.type}'. Supported types: multiple_choice, single_choice, true_false`, vscode.DiagnosticSeverity.Error);
 				diagnostic.source = 'quiz-validator';
 				diagnostics.push(diagnostic);
 			}
@@ -353,8 +396,9 @@ File Size: ${document.getText().length} characters
 				diagnostics.push(diagnostic);
 			}
 
-			// Validate multiple choice specific fields
-			if (question.type === 'multiple_choice') {
+			// Validate type-specific fields
+			if (['multiple_choice', 'single_choice', 'true_false'].includes(question.type)) {
+				// Validate options (required for all question types)
 				if (!question.options) {
 					const range = new vscode.Range(0, 0, 0, 0);
 					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: options`, vscode.DiagnosticSeverity.Error);
@@ -365,13 +409,24 @@ File Size: ${document.getText().length} characters
 					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: options must be an array`, vscode.DiagnosticSeverity.Error);
 					diagnostic.source = 'quiz-validator';
 					diagnostics.push(diagnostic);
-				} else if (question.options.length < 2) {
-					const range = new vscode.Range(0, 0, 0, 0);
-					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: multiple_choice questions must have at least 2 options`, vscode.DiagnosticSeverity.Warning);
-					diagnostic.source = 'quiz-validator';
-					diagnostics.push(diagnostic);
+				} else {
+					// Type-specific validation for options
+					if (question.type === 'true_false') {
+						if (question.options.length !== 2) {
+							const range = new vscode.Range(0, 0, 0, 0);
+							const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: true_false questions must have exactly 2 options`, vscode.DiagnosticSeverity.Error);
+							diagnostic.source = 'quiz-validator';
+							diagnostics.push(diagnostic);
+						}
+					} else if (question.options.length < 2) {
+						const range = new vscode.Range(0, 0, 0, 0);
+						const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: ${question.type} questions must have at least 2 options`, vscode.DiagnosticSeverity.Warning);
+						diagnostic.source = 'quiz-validator';
+						diagnostics.push(diagnostic);
+					}
 				}
 
+				// Validate correct_answers (required for all question types)
 				if (!question.correct_answers) {
 					const range = new vscode.Range(0, 0, 0, 0);
 					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: Missing required property: correct_answers`, vscode.DiagnosticSeverity.Error);
@@ -392,15 +447,38 @@ File Size: ${document.getText().length} characters
 					const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: correct_answers cannot be empty`, vscode.DiagnosticSeverity.Error);
 					diagnostic.source = 'quiz-validator';
 					diagnostics.push(diagnostic);
-				} else if (question.options && Array.isArray(question.options)) {
-					// Validate correct_answers indices
-					for (const answerIndex of question.correct_answers) {
-						if (typeof answerIndex !== 'number' || answerIndex < 0 || answerIndex >= question.options.length) {
+				} else {
+					// Type-specific validation for correct_answers
+					if (question.type === 'single_choice' || question.type === 'true_false') {
+						if (question.correct_answers.length !== 1) {
 							const range = new vscode.Range(0, 0, 0, 0);
-							const message = `Question ${index + 1}: correct_answers contains invalid index ${answerIndex}. Valid range: 0-${question.options.length - 1}`;
-							const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
+							const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: ${question.type} questions must have exactly one correct answer`, vscode.DiagnosticSeverity.Error);
 							diagnostic.source = 'quiz-validator';
 							diagnostics.push(diagnostic);
+						}
+					}
+
+					// Validate correct_answers indices for all types
+					if (question.options && Array.isArray(question.options)) {
+						for (const answerIndex of question.correct_answers) {
+							if (typeof answerIndex !== 'number' || answerIndex < 0 || answerIndex >= question.options.length) {
+								const range = new vscode.Range(0, 0, 0, 0);
+								const message = `Question ${index + 1}: correct_answers contains invalid index ${answerIndex}. Valid range: 0-${question.options.length - 1}`;
+								const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
+								diagnostic.source = 'quiz-validator';
+								diagnostics.push(diagnostic);
+							}
+						}
+
+						// Additional validation for true_false questions
+						if (question.type === 'true_false' && question.correct_answers.length === 1) {
+							const answerIndex = question.correct_answers[0];
+							if (answerIndex !== 0 && answerIndex !== 1) {
+								const range = new vscode.Range(0, 0, 0, 0);
+								const diagnostic = new vscode.Diagnostic(range, `Question ${index + 1}: true_false questions must have correct_answers index 0 or 1`, vscode.DiagnosticSeverity.Error);
+								diagnostic.source = 'quiz-validator';
+								diagnostics.push(diagnostic);
+							}
 						}
 					}
 				}

@@ -85,9 +85,11 @@
           "type": {
             "type": "string",
             "enum": [
-              "multiple_choice"
+              "multiple_choice",
+              "single_choice",
+              "true_false"
             ],
-            "description": "Type of question - currently only multiple_choice is supported"
+            "description": "Type of question - supports multiple_choice, single_choice, and true_false"
           },
           "text": {
             "type": "string",
@@ -149,17 +151,124 @@
                 },
                 "correct_answers": {
                   "type": "array",
-                  "description": "Array of indices of correct answers",
+                  "description": "Array of indices of correct answers (can be multiple)",
                   "minItems": 1,
                   "items": {
                     "type": "integer",
                     "minimum": 0
                   }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "single_choice"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "options",
+                "correct_answers"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "single_choice"
+                  ]
                 },
-                "allow_multiple": {
-                  "type": "boolean",
-                  "description": "Whether multiple answers can be selected",
-                  "default": false
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string"
+                },
+                "points": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "options": {
+                  "type": "array",
+                  "description": "Array of answer options",
+                  "minItems": 2,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "correct_answers": {
+                  "type": "array",
+                  "description": "Array with exactly one correct answer index",
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "true_false"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "options",
+                "correct_answers"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "true_false"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string"
+                },
+                "points": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "options": {
+                  "type": "array",
+                  "description": "Array with exactly two options (true/false variants)",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "correct_answers": {
+                  "type": "array",
+                  "description": "Array with exactly one correct answer index (0 or 1)",
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 }
               },
               "additionalProperties": false

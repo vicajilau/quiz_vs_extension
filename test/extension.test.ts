@@ -478,7 +478,7 @@ suite('QUIZ Extension Test Suite', () => {
                 },
                 questions: [
                     {
-                        type: "true_false", // invalid type, only multiple_choice allowed
+                        type: "invalid_type", // invalid type
                         text: "Test question",
                         options: ["A", "B"],
                         correct_answers: [0]
@@ -732,6 +732,162 @@ suite('QUIZ Extension Test Suite', () => {
             
             const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
             assert.ok(errors.length > 0, 'Should have errors for null correct_answers');
+        });
+    });
+
+    suite('Quiz File Structure Validation - Single Choice Questions', () => {
+        test('Should not show errors for valid single_choice question', async () => {
+            const validQuiz = {
+                metadata: {
+                    title: "Test Quiz",
+                    description: "A test quiz",
+                    version: "1.0.0",
+                    author: "Test Author"
+                },
+                questions: [
+                    {
+                        type: "single_choice",
+                        text: "What is the capital of France?",
+                        options: ["Madrid", "Paris", "Rome", "Berlin"],
+                        correct_answers: [1],
+                        explanation: "Paris is the capital of France."
+                    }
+                ]
+            };
+
+            const document = await createTestDocument(JSON.stringify(validQuiz, null, 2), 'valid-single-choice.quiz');
+            const diagnostics = await getDiagnostics(document);
+            
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            assert.strictEqual(errors.length, 0, 'Should not have errors for valid single_choice question');
+        });
+
+        test('Should show error for single_choice with multiple correct answers', async () => {
+            const invalidQuiz = {
+                metadata: {
+                    title: "Test Quiz",
+                    description: "A test quiz",
+                    version: "1.0.0",
+                    author: "Test Author"
+                },
+                questions: [
+                    {
+                        type: "single_choice",
+                        text: "Test question",
+                        options: ["A", "B", "C", "D"],
+                        correct_answers: [0, 2] // should have exactly one
+                    }
+                ]
+            };
+
+            const document = await createTestDocument(JSON.stringify(invalidQuiz, null, 2), 'single-choice-multiple-answers.quiz');
+            const diagnostics = await getDiagnostics(document);
+            
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            assert.ok(errors.length > 0, 'Should have errors for single_choice with multiple correct answers');
+        });
+    });
+
+    suite('Quiz File Structure Validation - True/False Questions', () => {
+        test('Should not show errors for valid true_false question', async () => {
+            const validQuiz = {
+                metadata: {
+                    title: "Test Quiz",
+                    description: "A test quiz",
+                    version: "1.0.0",
+                    author: "Test Author"
+                },
+                questions: [
+                    {
+                        type: "true_false",
+                        text: "The Earth is round.",
+                        options: ["True", "False"],
+                        correct_answers: [0],
+                        explanation: "The Earth is indeed round."
+                    }
+                ]
+            };
+
+            const document = await createTestDocument(JSON.stringify(validQuiz, null, 2), 'valid-true-false.quiz');
+            const diagnostics = await getDiagnostics(document);
+            
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            assert.strictEqual(errors.length, 0, 'Should not have errors for valid true_false question');
+        });
+
+        test('Should show error for true_false with wrong number of options', async () => {
+            const invalidQuiz = {
+                metadata: {
+                    title: "Test Quiz",
+                    description: "A test quiz",
+                    version: "1.0.0",
+                    author: "Test Author"
+                },
+                questions: [
+                    {
+                        type: "true_false",
+                        text: "Test question",
+                        options: ["True", "False", "Maybe"], // should have exactly 2
+                        correct_answers: [0]
+                    }
+                ]
+            };
+
+            const document = await createTestDocument(JSON.stringify(invalidQuiz, null, 2), 'true-false-wrong-options.quiz');
+            const diagnostics = await getDiagnostics(document);
+            
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            assert.ok(errors.length > 0, 'Should have errors for true_false with wrong number of options');
+        });
+
+        test('Should show error for true_false with multiple correct answers', async () => {
+            const invalidQuiz = {
+                metadata: {
+                    title: "Test Quiz",
+                    description: "A test quiz",
+                    version: "1.0.0",
+                    author: "Test Author"
+                },
+                questions: [
+                    {
+                        type: "true_false",
+                        text: "Test question",
+                        options: ["True", "False"],
+                        correct_answers: [0, 1] // should have exactly one
+                    }
+                ]
+            };
+
+            const document = await createTestDocument(JSON.stringify(invalidQuiz, null, 2), 'true-false-multiple-answers.quiz');
+            const diagnostics = await getDiagnostics(document);
+            
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            assert.ok(errors.length > 0, 'Should have errors for true_false with multiple correct answers');
+        });
+
+        test('Should show error for true_false with invalid correct answer index', async () => {
+            const invalidQuiz = {
+                metadata: {
+                    title: "Test Quiz",
+                    description: "A test quiz",
+                    version: "1.0.0",
+                    author: "Test Author"
+                },
+                questions: [
+                    {
+                        type: "true_false",
+                        text: "Test question",
+                        options: ["True", "False"],
+                        correct_answers: [2] // invalid index for true/false
+                    }
+                ]
+            };
+
+            const document = await createTestDocument(JSON.stringify(invalidQuiz, null, 2), 'true-false-invalid-index.quiz');
+            const diagnostics = await getDiagnostics(document);
+            
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            assert.ok(errors.length > 0, 'Should have errors for true_false with invalid correct answer index');
         });
     });
 
