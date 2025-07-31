@@ -13,14 +13,6 @@ A VS Code extension that provides comprehensive support for `.quiz` files with J
 
 _The extension automatically detects `.quiz` files and provides real-time validation with detailed error messages, as shown above where invalid `correct_answers` indices are highlighted with clear diagnostic messages._
 
-## 🆕 What's New in v0.2.0
-
-- **Multiple Question Types**: Added support for `single_choice` and `true_false` questions
-- **Enhanced Validation**: Type-specific validation rules for each question type
-- **New Code Snippets**: Quick templates for all question types including bilingual true/false
-- **Improved Sample Generation**: Create comprehensive quiz examples with all question types
-- **Better Error Messages**: More specific validation messages based on question type
-
 ## Features
 
 - **Automatic recognition**: `.quiz` files are automatically recognized with custom language support
@@ -212,8 +204,8 @@ The extension provides several code snippets to speed up quiz creation:
    # 3. Create VSIX package
    npm run vsce:package
 
-   # 4. Install locally to test
-   code --install-extension quiz-file-support-0.2.0.vsix
+   # 4. Install locally to test (replace x.y.z with version from package.json)
+   code --install-extension quiz-file-support-x.y.z.vsix
    ```
 
 ### Testing
